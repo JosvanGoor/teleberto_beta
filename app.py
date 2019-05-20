@@ -2,7 +2,7 @@ import logging
 import traceback
 import calculator.parser as calcparse
 from dieroller.parser import Parser
-import tokenfile as t
+import teletoken as t
 
 from telegram.ext import Updater, CommandHandler, MessageHandler
 from telegram.ext import Filters
