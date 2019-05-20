@@ -1,5 +1,5 @@
 from calculator.tokenizer import Token, Tokenizer
-from calculator.ast import BinaryExpr, NegateExpr, ValueExpr
+from calculator.ast import BinaryExpr, CallExpr, NegateExpr, ValueExpr
 
 class Parser:
 
@@ -23,11 +23,14 @@ class Parser:
             return True
         return False
         
-    def parse(self, tokens):
-        self.tokens = tokens
+    def parse(self, string):
+        self.tokens = Tokenizer().tokenize(string)
         self.index = 0
 
-        return self._expression()
+        expr = self._expression()
+        if not self.peek().type == Token.EOL:
+            raise Exception("Trailing tokens, did you add an additional space or forget an operator somewhere?")            
+        return expr
 
     # Parsing functions
     def _expression(self):
@@ -79,5 +82,24 @@ class Parser:
             if not self.accept(Token.RIGHT_PAREN):
                 raise Exception("Unexpected end of line, did you forget a closing parenthesis?")
             return expr
+        elif self.peek().type.startswith("kw_"):
+            return self._call()
         else:
             raise Exception("Unexpected token type {}, expected a number or '('".format(self.peek().type))
+
+    def _call(self):
+        keyword = self.advance()
+
+        if not self.accept(Token.LEFT_PAREN):
+            raise Exception("Expected '(', got {} instead".format(self.peek().type))
+        
+        arguments = []
+        if not self.peek().type == Token.RIGHT_PAREN:
+            arguments.append(self._expression())
+
+        while not self.accept(Token.RIGHT_PAREN):
+            if not self.accept(Token.COMMA):
+                raise Exception("Expected ',' or ')', got {} instead.".format(self.peek().type))
+            arguments.append(self._expression())
+
+        return CallExpr(keyword, arguments)

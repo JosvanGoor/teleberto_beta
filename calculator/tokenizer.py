@@ -1,17 +1,30 @@
+import math
 
 # Token container
 class Token:
-    NUMBER = "number"
-    IDENTIFIER = "identifier"
-    EOL = "eol"
+    NUMBER      = "number"
+    IDENTIFIER  = "identifier"
+    EOL         = "eol"
 
-    PLUS = "plus"
-    MINUS = "minus"
-    STAR = "star"
-    SLASH = "slash"
-    HAT = "hat" # '^'
-    LEFT_PAREN = "left_paren"
+    PLUS        = "plus"
+    MINUS       = "minus"
+    STAR        = "star"
+    SLASH       = "slash"
+    HAT         = "hat" # '^'
+    LEFT_PAREN  = "left_paren"
     RIGHT_PAREN = "right_paren"
+    COMMA       = "comma"
+
+    KW_SQRT     = "kw_sqrt"
+    KW_POW      = "kw_pow"
+    KW_SIN      = "kw_sin"
+    KW_COS      = "kw_cos"
+    KW_TAN      = "kw_tan"
+    KW_LOG      = "kw_log"
+    KW_LN       = "kw_ln"
+    KW_DEG      = "kw_deg"
+    KW_RAD      = "kw_rad"
+    KW_EXP      = "kw_exp"
 
     def __init__(self, type, literal = ""):
         self.type = type
@@ -30,6 +43,25 @@ class Token:
 # ALPHANUMERIC  = ALPHA | [0-9] ;
 
 class Tokenizer:
+    keywords = \
+    {
+        "sqrt" : Token(Token.KW_SQRT, 1),
+        "pow" : Token(Token.KW_POW, 2),
+        "sin" : Token(Token.KW_SIN, 1),
+        "cos" : Token(Token.KW_COS, 1),
+        "tan" : Token(Token.KW_TAN, 1),
+        "log" : Token(Token.KW_LOG, 2),
+        "ln" : Token(Token.KW_LN, 1),
+        "deg" : Token(Token.KW_DEG, 1),
+        "rad" : Token(Token.KW_RAD, 1),
+        "exp" : Token(Token.KW_EXP, 1)
+    }
+
+    constants = \
+    {
+        "e" : Token(Token.NUMBER, str(math.e)),
+        "pi" : Token(Token.NUMBER, str(math.pi))
+    }
 
     def __init__(self):
         self.string = ""
@@ -90,6 +122,10 @@ class Tokenizer:
         while self.peek().isdigit() or self.peek().isalpha() or self.peek() == "_":
             literal = literal + self.advance()
 
+        if literal in self.keywords:
+            return self.keywords[literal]
+        if literal in self.constants:
+            return self.constants[literal]
         return Token(Token.IDENTIFIER, literal)
 
     def tokenize(self, string):
@@ -119,6 +155,8 @@ class Tokenizer:
                 tokens.append(Token(Token.LEFT_PAREN))
             elif self.accept(")"):
                 tokens.append(Token(Token.RIGHT_PAREN))
+            elif self.accept(","):
+                tokens.append(Token(Token.COMMA))
 
             # multichar tokens
             elif self.peek().isdigit():
